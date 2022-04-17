@@ -1,0 +1,5 @@
+3
+Black_Hair Blond_Hair Brown_Hair Male Young 
+laura.jpg -1 -1 1 -1 1
+alexandra.jpg -1  1  -1 -1 1
+nicu.jpg -1 -1 1 1 1
