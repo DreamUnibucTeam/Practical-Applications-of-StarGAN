@@ -180,31 +180,6 @@ def run_stargan_on_image(img, used_config, paramfile, attributes=[1, 0, 0, 1, 1]
     """
 
     return run_stargan_on_images([img], used_config, paramfile, attributes)[0]
-    # assert os.path.isfile(paramfile) and paramfile.split(
-    #     "/")[-1] == used_config["pretrained_params"], "Corresponding parameter file not found."
-
-    # print("Learned attributes choice: {}".format(
-    #     used_config["selected_attrs"]))
-
-    # # Prepare Generator and Discriminator based on user config.
-    # generator = functools.partial(
-    #     model.generator, conv_dim=used_config["g_conv_dim"], c_dim=used_config["c_dim"], repeat_num=used_config["g_repeat_num"])
-
-    # x_real = nn.Variable(
-    #     [1, 3, used_config["image_size"], used_config["image_size"]])
-    # label_trg = nn.Variable([1, used_config["c_dim"], 1, 1])
-    # with nn.parameter_scope("gen"):
-    #     x_fake = generator(x_real, label_trg)
-    # x_fake.persistent = True
-
-    # nn.load_parameters(paramfile)  # load learned parameters.
-
-    # # Get fake images attributes
-    # assert len(
-    #     attributes) == used_config['c_dim'], f'Attributes list should contain {used_config["c_dim"]} elements'
-    # attributes = np.array(attributes)
-
-    # return generate_from_image(img, attributes, x_real, x_fake, label_trg, used_config)
 
 
 def generate_from_image(image, attributes, x_real, x_fake, label_trg, used_config):
@@ -227,7 +202,6 @@ def generate_from_image(image, attributes, x_real, x_fake, label_trg, used_confi
     fake_img = (fake_img * 0.5) + 0.5
     fake_img = fake_img.transpose((1, 2, 0))
     return fake_img
-    # save_results(i, args, used_config, x_fake, label_trg)
 
 
 def get_args():
