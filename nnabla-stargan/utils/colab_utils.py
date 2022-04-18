@@ -19,7 +19,7 @@ from google.colab.output import eval_js
 from base64 import b64decode
 
 
-def take_photo(filename="photo.png", cam_width=None, cam_height=None):
+def take_photo(filename="photo.png", cam_width=256, cam_height=256):
     """
         take a photo using a camera. If the machine has multiple cameras,
         you need to switch the camera
@@ -134,4 +134,81 @@ def take_photo(filename="photo.png", cam_width=None, cam_height=None):
     binary = b64decode(data.split(',')[1])
     with open(filename, 'wb') as f:
         f.write(binary)
+    return filename
+
+
+def record_video(filename='video.mp4', cam_width=256, cam_height=256):
+
+    # This function uses the take_photo() function provided by the Colab team as a
+    # starting point, along with a bunch of stuff from Stack overflow, and some sample code
+    # from: https://developer.mozilla.org/enUS/docs/Web/API/MediaStream_Recording_API
+
+    js = Javascript("""
+    async function recordVideo() {
+      const options = { mimeType: "video/webm; codecs=vp9" };
+      const div = document.createElement('div');
+      const capture = document.createElement('button');
+      const stopCapture = document.createElement("button");
+      capture.textContent = "Start Recording";
+      capture.style.background = "green";
+      capture.style.color = "white";
+
+      stopCapture.textContent = "Stop Recording";
+      stopCapture.style.background = "red";
+      stopCapture.style.color = "white";
+      div.appendChild(capture);
+
+      const video = document.createElement('video');
+      const recordingVid = document.createElement("video");
+      video.style.display = 'block';
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          width: {ideal: cam_width},
+          height: {ideal: cam_height},
+        }
+      });
+      let recorder = new MediaRecorder(stream, options);
+      document.body.appendChild(div);
+      div.appendChild(video);
+      video.srcObject = stream;
+      await video.play();
+
+      // Resize the output to fit the video element.
+      google.colab.output.setIframeHeight(document.documentElement.scrollHeight, true);
+
+      await new Promise((resolve) => {
+        capture.onclick = resolve;
+      });
+      recorder.start();
+      capture.replaceWith(stopCapture);
+      await new Promise((resolve) => stopCapture.onclick = resolve);
+      recorder.stop();
+
+      let recData = await new Promise((resolve) => recorder.ondataavailable = resolve);
+      let arrBuff = await recData.data.arrayBuffer();
+      stream.getVideoTracks()[0].stop();
+      div.remove();
+
+      let binaryString = "";
+      let bytes = new Uint8Array(arrBuff);
+      bytes.forEach((byte) => {
+        binaryString += String.fromCharCode(byte);
+      })
+      return btoa(binaryString);
+    }
+    """)
+    try:
+        display(js)
+        data = eval_js('recordVideo({})')
+        binary = b64decode(data)
+        with open(filename, "wb") as video_file:
+            video_file.write(binary)
+        print(
+            f"Finished recording video. Saved binary under filename in current working directory: {filename}"
+        )
+    except Exception as err:
+        # In case any exceptions arise
+        print(str(err))
     return filename
