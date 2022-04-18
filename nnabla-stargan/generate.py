@@ -137,17 +137,11 @@ def generate(args):
         save_results(i, args, used_config, x_fake, label_trg)
 
 
-def run_stargan_on_images(image_list, attributes=[1, 0, 0, 1, 1]):
+def run_stargan_on_images(image_list, used_config, paramfile, attributes=[1, 0, 0, 1, 1]):
     """
     Run StarGAN on a list of images and return a list of generated modified images
     """
-    args = get_args()
 
-    # Load the config data used for training.
-    with open(args.config, "r") as f:
-        used_config = json.load(f)
-
-    paramfile = args.pretrained_params
     assert os.path.isfile(paramfile) and paramfile.split(
         "/")[-1] == used_config["pretrained_params"], "Corresponding parameter file not found."
 
@@ -180,42 +174,37 @@ def run_stargan_on_images(image_list, attributes=[1, 0, 0, 1, 1]):
     return np.asarray(result)
 
 
-def run_stargan_on_image(img):
+def run_stargan_on_image(img, used_config, paramfile, attributes=[1, 0, 0, 1, 1]):
     """
     Run StarGAN on a single image and return a single modified generated image
     """
-    args = get_args()
 
-    # Load the config data used for training.
-    with open(args.config, "r") as f:
-        used_config = json.load(f)
+    return run_stargan_on_images([img], used_config, paramfile, attributes)[0]
+    # assert os.path.isfile(paramfile) and paramfile.split(
+    #     "/")[-1] == used_config["pretrained_params"], "Corresponding parameter file not found."
 
-    paramfile = args.pretrained_params
-    assert os.path.isfile(paramfile) and paramfile.split(
-        "/")[-1] == used_config["pretrained_params"], "Corresponding parameter file not found."
+    # print("Learned attributes choice: {}".format(
+    #     used_config["selected_attrs"]))
 
-    print("Learned attributes choice: {}".format(
-        used_config["selected_attrs"]))
+    # # Prepare Generator and Discriminator based on user config.
+    # generator = functools.partial(
+    #     model.generator, conv_dim=used_config["g_conv_dim"], c_dim=used_config["c_dim"], repeat_num=used_config["g_repeat_num"])
 
-    # Prepare Generator and Discriminator based on user config.
-    generator = functools.partial(
-        model.generator, conv_dim=used_config["g_conv_dim"], c_dim=used_config["c_dim"], repeat_num=used_config["g_repeat_num"])
+    # x_real = nn.Variable(
+    #     [1, 3, used_config["image_size"], used_config["image_size"]])
+    # label_trg = nn.Variable([1, used_config["c_dim"], 1, 1])
+    # with nn.parameter_scope("gen"):
+    #     x_fake = generator(x_real, label_trg)
+    # x_fake.persistent = True
 
-    x_real = nn.Variable(
-        [1, 3, used_config["image_size"], used_config["image_size"]])
-    label_trg = nn.Variable([1, used_config["c_dim"], 1, 1])
-    with nn.parameter_scope("gen"):
-        x_fake = generator(x_real, label_trg)
-    x_fake.persistent = True
+    # nn.load_parameters(paramfile)  # load learned parameters.
 
-    nn.load_parameters(paramfile)  # load learned parameters.
+    # # Get fake images attributes
+    # assert len(
+    #     attributes) == used_config['c_dim'], f'Attributes list should contain {used_config["c_dim"]} elements'
+    # attributes = np.array(attributes)
 
-    # Get fake images attributes
-    assert len(
-        attributes) == used_config['c_dim'], f'Attributes list should contain {used_config["c_dim"]} elements'
-    attributes = np.array(attributes)
-
-    return generate_from_image(img, attributes, x_real, x_fake, label_trg, used_config)
+    # return generate_from_image(img, attributes, x_real, x_fake, label_trg, used_config)
 
 
 def generate_from_image(image, attributes, x_real, x_fake, label_trg, used_config):
