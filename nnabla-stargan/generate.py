@@ -224,9 +224,9 @@ def generate_from_image(image, attributes, x_real, x_fake, label_trg, used_confi
     x_fake.forward(clear_no_need_grad=True)
 
     fake_img = x_fake.d[0]
-    img = (img * 0.5) + 0.5
-    img = img.transpose((1, 2, 0))
-    return img
+    fake_img = (fake_img * 0.5) + 0.5
+    fake_img = fake_img.transpose((1, 2, 0))
+    return fake_img
     # save_results(i, args, used_config, x_fake, label_trg)
 
 
