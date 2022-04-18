@@ -19,7 +19,7 @@ from google.colab.output import eval_js
 from base64 import b64decode
 
 
-def take_photo(filename="photo.png", cam_width=256, cam_height=256):
+def take_photo(filename="photo.png", cam_width=None, cam_height=None):
     """
         take a photo using a camera. If the machine has multiple cameras,
         you need to switch the camera
@@ -137,14 +137,14 @@ def take_photo(filename="photo.png", cam_width=256, cam_height=256):
     return filename
 
 
-def record_video(filename='video.mp4', cam_width=256, cam_height=256):
+def record_video(filename='video.mp4', cam_width=None, cam_height=None):
 
     # This function uses the take_photo() function provided by the Colab team as a
     # starting point, along with a bunch of stuff from Stack overflow, and some sample code
     # from: https://developer.mozilla.org/enUS/docs/Web/API/MediaStream_Recording_API
 
     js = Javascript("""
-    async function recordVideo() {
+    async function recordVideo(cam_width, cam_height) {
       const options = { mimeType: "video/webm; codecs=vp9" };
       const div = document.createElement('div');
       const capture = document.createElement('button');
@@ -152,16 +152,13 @@ def record_video(filename='video.mp4', cam_width=256, cam_height=256):
       capture.textContent = "Start Recording";
       capture.style.background = "green";
       capture.style.color = "white";
-
       stopCapture.textContent = "Stop Recording";
       stopCapture.style.background = "red";
       stopCapture.style.color = "white";
       div.appendChild(capture);
-
       const video = document.createElement('video');
       const recordingVid = document.createElement("video");
       video.style.display = 'block';
-
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: {
@@ -174,10 +171,8 @@ def record_video(filename='video.mp4', cam_width=256, cam_height=256):
       div.appendChild(video);
       video.srcObject = stream;
       await video.play();
-
       // Resize the output to fit the video element.
       google.colab.output.setIframeHeight(document.documentElement.scrollHeight, true);
-
       await new Promise((resolve) => {
         capture.onclick = resolve;
       });
@@ -185,12 +180,10 @@ def record_video(filename='video.mp4', cam_width=256, cam_height=256):
       capture.replaceWith(stopCapture);
       await new Promise((resolve) => stopCapture.onclick = resolve);
       recorder.stop();
-
       let recData = await new Promise((resolve) => recorder.ondataavailable = resolve);
       let arrBuff = await recData.data.arrayBuffer();
       stream.getVideoTracks()[0].stop();
       div.remove();
-
       let binaryString = "";
       let bytes = new Uint8Array(arrBuff);
       bytes.forEach((byte) => {
@@ -200,8 +193,13 @@ def record_video(filename='video.mp4', cam_width=256, cam_height=256):
     }
     """)
     try:
+        if not cam_width:
+            cam_width = "null"
+        if not cam_height:
+            cam_height = "null"
+
         display(js)
-        data = eval_js('recordVideo({})')
+        data = eval_js(f'recordVideo({cam_width}, {cam_height})')
         binary = b64decode(data)
         with open(filename, "wb") as video_file:
             video_file.write(binary)
