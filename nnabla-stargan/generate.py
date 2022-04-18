@@ -68,7 +68,7 @@ def transform_img(img, used_config):
     image_size = used_config["image_size"]
 
     # Move from channels last to channels first so the model can handle it
-    image = img.copy().transpose(axis=(2, 0, 1))
+    image = img.copy().transpose((2, 0, 1))
     if image.dtype == np.uint8:
         # Clip image's value from [0, 255] -> [0.0, 1.0]
         image = image / 255.0
@@ -225,7 +225,7 @@ def generate_from_image(image, attributes, x_real, x_fake, label_trg, used_confi
 
     fake_img = x_fake.d[0]
     img = (img * 0.5) + 0.5
-    img = img.transpose(1, 2, 0)
+    img = img.transpose((1, 2, 0))
     return img
     # save_results(i, args, used_config, x_fake, label_trg)
 
