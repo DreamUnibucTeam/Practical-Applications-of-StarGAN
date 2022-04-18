@@ -68,7 +68,9 @@ def transform_img(img, used_config):
     image_size = used_config["image_size"]
 
     # Move from channels last to channels first so the model can handle it
+    print(img.shape)
     image = img.copy().transpose((2, 0, 1))
+    print(image.shape)
     if image.dtype == np.uint8:
         # Clip image's value from [0, 255] -> [0.0, 1.0]
         image = image / 255.0
